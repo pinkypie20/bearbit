@@ -1,32 +1,5 @@
 
 (function(a,b){var eW=a0f,c=a();
-
-			   // เลือกแถวทั้งหมด
-const rows1 = document.querySelectorAll('tr');
-
-rows1.forEach(row => {
-    // 1. ค้นหารูปหน้าปกจริง
-    const realPosterImg = row.querySelector('td.poster-column img');
-    
-    // 2. ค้นหาลิงก์เป้าหมาย
-    const targetLink = row.querySelector('a[href^="details.php?"]');
-
-    // 3. เช็คเงื่อนไข: ต้องมีรูปจริง, มีลิงก์เป้าหมาย และ "ยังไม่มี" กล้องที่เราเพิ่งเพิ่มไป
-    if (realPosterImg && targetLink && !row.querySelector('.added-cam-icon')) {
-        
-        const realImageUrl = realPosterImg.src; 
-
-        // สร้าง HTML โดยใส่ class "added-cam-icon" ไว้เพื่อป้องกันการรันซ้ำ
-        const newColumnHtml = `
-            <td class="added-cam-icon" width="900" style="vertical-align: middle; text-align: center;">
-                <a href="${realImageUrl}" target="_blank">
-                    <img src="pic/cams.gif" alt="View Poster" border="0">
-                </a>
-            </td>`;
-        
-        targetLink.insertAdjacentHTML('afterend', newColumnHtml);
-    }
-});
   try {
 	var tables = document.getElementsByTagName('table');
 	tables = Array.from(tables).filter(tbl => tbl.getAttribute('width') === "100%");
