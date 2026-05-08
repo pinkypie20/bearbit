@@ -37,38 +37,80 @@
 
     // --- ส่วนที่ 2: ฟังก์ชันดึง Screenshot (กำหนดไว้ด้านในเพื่อให้เรียกใช้ได้) ---
     async function getScreenShotsWithCache() {
-        const detailLinks = Array.from(document.querySelectorAll('td[width="900"] a[href*="detail"]'));
-        console.log(`กำลังดึงข้อมูล Screenshot: พบทั้งหมด ${detailLinks.length} รายการ`);
-
-        const results = await Promise.all(detailLinks.map(async (link, index) => {
-            const detailUrl = link.href;
-            const cachedData = localStorage.getItem(`cache_${detailUrl}`);
-            if (cachedData) return cachedData;
-
-            try {
-                await new Promise(r => setTimeout(r, index * 50)); // ปรับ delay ให้เร็วขึ้นเล็กน้อย
-                const response = await fetch(detailUrl);
-                const htmlText = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-
-                const rowHead = Array.from(doc.querySelectorAll('td.rowhead'))
-                    .find(td => td.textContent.includes('ScreenShot'));
-
-                if (rowHead) {
-                    const screenShotUrl = rowHead.nextElementSibling.querySelector('a')?.href;
-                    if (screenShotUrl) {
-                        localStorage.setItem(`cache_${detailUrl}`, screenShotUrl);
-                        return screenShotUrl;
-                    }
-                }
-            } catch (e) {
-                console.error("Fetch failed:", detailUrl);
-            }
-            return null;
-        }));
-        return results;
-    }
+		const EXPIRY_DAYS = 30;
+		const now = new Date().getTime();
+	
+		// --- ส่วนที่ 1: ฟังก์ชันลบข้อมูลที่เก่ากว่า 30 วัน ---
+		const cleanupOldCache = () => {
+			let count = 0;
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+				if (key.startsWith('cache_')) {
+					try {
+						const item = JSON.parse(localStorage.getItem(key));
+						// ตรวจสอบว่าถ้าไม่มี timestamp หรือเก่ากว่า 30 วัน ให้ลบออก
+						if (!item.timestamp || (now - item.timestamp > EXPIRY_DAYS * 24 * 60 * 60 * 1000)) {
+							localStorage.removeItem(key);
+							count++;
+							i--; // ปรับ index ถอยหลังเพราะ item หายไป 1 ตัว
+						}
+					} catch (e) {
+						// ถ้าข้อมูลเก่าไม่ใช่ JSON (ของเดิม) ก็สั่งลบเพื่อล้างไพ่ใหม่ได้เลย
+						localStorage.removeItem(key);
+					}
+				}
+			}
+			if (count > 0) console.log(`ล้างแคชเก่าที่หมดอายุแล้ว ${count} รายการ`);
+		};
+	
+		cleanupOldCache(); // รันการล้างข้อมูลทันทีที่เรียกใช้ฟังก์ชัน
+	
+		// --- ส่วนที่ 2: ดึงข้อมูล Screenshot ---
+		const detailLinks = Array.from(document.querySelectorAll('td[width="900"] a[href*="detail"]'));
+		console.log(`กำลังดึงข้อมูล Screenshot: พบทั้งหมด ${detailLinks.length} รายการ`);
+	
+		const results = await Promise.all(detailLinks.map(async (link, index) => {
+			const detailUrl = link.href;
+			const rawData = localStorage.getItem(`cache_${detailUrl}`);
+			
+			if (rawData) {
+				try {
+					const item = JSON.parse(rawData);
+					return item.url; // ส่งคืนเฉพาะ URL ออกไปใช้งาน
+				} catch (e) {
+					// ถ้า parse ไม่ได้ (ข้อมูลรูปแบบเก่า) ให้ดึงใหม่
+				}
+			}
+	
+			try {
+				await new Promise(r => setTimeout(r, index * 50));
+				const response = await fetch(detailUrl);
+				const htmlText = await response.text();
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(htmlText, 'text/html');
+	
+				const rowHead = Array.from(doc.querySelectorAll('td.rowhead'))
+					.find(td => td.textContent.includes('ScreenShot'));
+	
+				if (rowHead) {
+					const screenShotUrl = rowHead.nextElementSibling.querySelector('a')?.href;
+					if (screenShotUrl) {
+						// เก็บข้อมูลเป็น Object พร้อม Timestamp
+						const dataToStore = {
+							url: screenShotUrl,
+							timestamp: now
+						};
+						localStorage.setItem(`cache_${detailUrl}`, JSON.stringify(dataToStore));
+						return screenShotUrl;
+					}
+				}
+			} catch (e) {
+				console.error("Fetch failed:", detailUrl);
+			}
+			return null;
+		}));
+		return results;
+	}
 
     // --- ส่วนที่ 3: รันการดึงข้อมูลและแสดงผลรูปภาพ ---
     const start = performance.now();
