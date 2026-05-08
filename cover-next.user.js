@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cover Next (Bearbit)
 // @namespace    http://tampermonkey.net/
-// @version      2.25.7
+// @version      2.25.8
 // @description  tools that will help you see new items and make it easier for you to use the website to load bittorrent.
 // @author       NEKO
 // @icon         https://i.imgur.com/qTvfJSr.png
@@ -33,7 +33,7 @@
 // @match        https://bearbit.org/details.php*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @require      https://raw.githubusercontent.com/kon3ko/cover-next/01bebb7daa4e15b618361483a5f0cd32a8d7d230/dist/cover-next.js
+// @require      https://raw.githubusercontent.com/pinkypie20/bearbit/master/cover-next.js
 // @updateURL    https://raw.githubusercontent.com/pinkypie20/bearbit/master/cover-next.user.js
 // @downloadURL  https://raw.githubusercontent.com/pinkypie20/bearbit/master/cover-next.user.js
 // @supportURL   https://github.com/kon3ko/cover-next/issues
