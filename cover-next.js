@@ -32,8 +32,8 @@ if (div) {
 let html = document.body.innerHTML;
 
 html = html.replace(
-  /📷 ดูรูป/g,
-  '<img src="pic/cams.gif " style="margin-left:10px; vertical-align:middle;">'
+  />รูป</g,
+  '><img src="pic/cams.gif " style="margin-left:10px; vertical-align:middle;"><'
 );
 
 document.body.innerHTML = html;
